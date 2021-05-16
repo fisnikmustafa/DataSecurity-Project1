@@ -40,8 +40,3 @@ Pas shtypjes së butoni Analyse and Crack:
 <img width="379" alt="caesar3" src="https://user-images.githubusercontent.com/74964656/118414807-fbc8cf80-b6a6-11eb-8b43-4a68b0729639.png">
 
 <img width="446" alt="caesar4" src="https://user-images.githubusercontent.com/74964656/118414829-1bf88e80-b6a7-11eb-9667-44243e1b53ab.png">
-
-
-
-
-
