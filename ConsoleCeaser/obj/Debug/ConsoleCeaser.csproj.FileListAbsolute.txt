@@ -1,0 +1,7 @@
+C:\Users\DELL\source\repos\ConsoleCeaser\bin\Debug\ConsoleCeaser.exe.config
+C:\Users\DELL\source\repos\ConsoleCeaser\bin\Debug\ConsoleCeaser.exe
+C:\Users\DELL\source\repos\ConsoleCeaser\bin\Debug\ConsoleCeaser.pdb
+C:\Users\DELL\source\repos\ConsoleCeaser\obj\Debug\ConsoleCeaser.csprojAssemblyReference.cache
+C:\Users\DELL\source\repos\ConsoleCeaser\obj\Debug\ConsoleCeaser.csproj.CoreCompileInputs.cache
+C:\Users\DELL\source\repos\ConsoleCeaser\obj\Debug\ConsoleCeaser.exe
+C:\Users\DELL\source\repos\ConsoleCeaser\obj\Debug\ConsoleCeaser.pdb
