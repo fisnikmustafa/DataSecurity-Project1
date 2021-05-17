@@ -25,9 +25,18 @@ namespace ConsoleCeaser
 
                 Console.WriteLine(); // rresht i zbrazet
 
-                string ciphertext = Encrypt(plaintext, int.Parse(key)); // thirret metoda Encrypt dhe i jepet vlera e saj ciphertext
-                Console.WriteLine("Teksti i enkriptuar eshte: " + ciphertext); // shfaq tekstin e enkriptuar
-                Analizo(ciphertext); // therret metoden Analizo
+                try
+                {
+                    string ciphertext = Encrypt(plaintext, int.Parse(key)); // thirret metoda Encrypt dhe i jepet vlera e saj ciphertext
+                    Console.WriteLine("Teksti i enkriptuar eshte: " + ciphertext); // shfaq tekstin e enkriptuar
+                    Analizo(ciphertext); // therret metoden Analizo
+                }
+
+                catch(Exception e)
+                {
+                    Console.WriteLine(e.Message);
+                    Console.ReadLine();
+                }
             }
 
             else // nese shtegu nuk ekziton shfaqet mesazhi me poshte
