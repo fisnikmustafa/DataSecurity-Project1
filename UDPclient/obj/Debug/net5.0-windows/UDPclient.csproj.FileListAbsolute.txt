@@ -27,3 +27,5 @@ C:\Users\DELL\Desktop\UDPclient\bin\Debug\net5.0-windows\Ubiety.Dns.Core.dll
 C:\Users\DELL\Desktop\UDPclient\bin\Debug\net5.0-windows\Zstandard.Net.dll
 C:\Users\DELL\Desktop\UDPclient\obj\Debug\net5.0-windows\UDPclient.csproj.CopyComplete
 C:\Users\DELL\Desktop\UDPclient\obj\Debug\net5.0-windows\UDPclient.shpenzimet.resources
+C:\Users\DELL\Desktop\UDPclient\obj\Debug\net5.0-windows\UDPclient.Info.resources
+C:\Users\DELL\Desktop\UDPclient\obj\Debug\net5.0-windows\UDPclient.Informatat.resources

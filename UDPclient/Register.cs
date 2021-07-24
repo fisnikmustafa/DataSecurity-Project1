@@ -19,19 +19,18 @@ namespace UDPclient
 {
     public partial class Register : Form
     {
-        X509Certificate2 certifikata;
+        private static X509Certificate2 cert = GetCertificateFromStore("E=support@uni-pr.edu, CN=www.uni-pr.edu, OU=FIEK, O=University of Prishtina, L=Washington, S=DC, C=US");
+
         RSACryptoServiceProvider objRsa = new RSACryptoServiceProvider();
         DESCryptoServiceProvider objDes = new DESCryptoServiceProvider();
-        Socket clientSocket;
-        XmlDocument objXml = new XmlDocument();
+        
+        UdpClient klienti = new UdpClient();
 
-        public Register(Socket socket, X509Certificate2 certificate2)
+
+        public Register()
         {
             InitializeComponent();
-            
-            clientSocket = socket;
-            certifikata = certificate2;
-            
+           
         }
 
 
@@ -39,8 +38,6 @@ namespace UDPclient
         {
 
             send();
-            //XmlFile();
-            //xmlSignature();
             MessageBox.Show("Te dhenat u ruajten me sukses!");
           
         }
@@ -58,10 +55,16 @@ namespace UDPclient
 
             string message = fname + "." + lname + "." + email + "." + username + "." + password;
             message = encrypt(message);
-            byte[] data = Encoding.Default.GetBytes(message);
-            clientSocket.Send(data, 0, data.Length, 0);
-        }
 
+            Socket newSocket = new Socket(AddressFamily.InterNetwork,
+                                        SocketType.Dgram, ProtocolType.Udp);
+            IPEndPoint ep = new IPEndPoint(IPAddress.Parse("127.0.0.1"), 12000);
+            EndPoint tempRemote = (EndPoint)ep;
+            klienti.Connect(ep);
+            byte[] data = Encoding.Default.GetBytes(message);
+            klienti.Send(data, data.Length);
+        }
+        
         private string encrypt(string plaintext)
         {
             objDes.GenerateKey();
@@ -72,7 +75,7 @@ namespace UDPclient
             string IV = Encoding.Default.GetString(objDes.IV);
 
 
-            objRsa = (RSACryptoServiceProvider)certifikata.PublicKey.Key;
+            objRsa = (RSACryptoServiceProvider)cert.PublicKey.Key;
             byte[] byteKey = objRsa.Encrypt(objDes.Key, true);
             string encryptedKey = Convert.ToBase64String(byteKey);
 
@@ -90,75 +93,27 @@ namespace UDPclient
 
         }
 
-        void XmlFile()
+        
+
+        private static X509Certificate2 GetCertificateFromStore(string certName)
         {
-            if (File.Exists("information.xml") == false)
+
+            X509Store store = new X509Store(StoreName.My, StoreLocation.CurrentUser);
+            try
             {
-                XmlTextWriter xmlTw = new XmlTextWriter("fatura.xml", Encoding.UTF8);
-                xmlTw.WriteStartElement("fatura");
-                xmlTw.Close();
+                store.Open(OpenFlags.ReadOnly);
+                X509Certificate2Collection certCollection = store.Certificates;
+                X509Certificate2Collection currentCerts = certCollection.Find(X509FindType.FindByTimeValid, DateTime.Now, false);
+                X509Certificate2Collection signingCert = currentCerts.Find(X509FindType.FindBySubjectDistinguishedName, certName, false);
+                if (signingCert.Count == 0)
+                    return null;
+                return signingCert[0];
+            }
+            finally
+            {
+                store.Close();
             }
 
-            objXml.Load("information.xml");
-
-            XmlElement rootNode = objXml.DocumentElement;
-
-            XmlElement userNode = objXml.CreateElement("users");
-            XmlElement nameNode = objXml.CreateElement("firstname");
-            XmlElement surnameNode = objXml.CreateElement("lastname");
-            XmlElement usernameNode = objXml.CreateElement("username");
-            XmlElement emailNode = objXml.CreateElement("email");
-
-
-            nameNode.InnerText = txtFirstName.Text;
-            surnameNode.InnerText = txtLastName.Text;
-            usernameNode.InnerText =txtUsername.Text;
-            emailNode.InnerText = txtEmail.Text;
-
-            userNode.AppendChild(nameNode);
-            userNode.AppendChild(surnameNode);
-            userNode.AppendChild(usernameNode);
-            userNode.AppendChild(emailNode);
-
-            rootNode.AppendChild(userNode);
-
-            objXml.Save("information.xml");
-        }
-
-        void xmlSignature()
-        {
-            objXml.Load("fatura.xml");
-
-            SignedXml objSignedXml = new SignedXml(objXml);
-
-            Reference referenca = new Reference();
-            referenca.Uri = "";
-
-
-            XmlDsigEnvelopedSignatureTransform xmlDsigEnvelopedSignatureTransform = new XmlDsigEnvelopedSignatureTransform();
-
-            referenca.AddTransform(xmlDsigEnvelopedSignatureTransform);
-
-            objSignedXml.AddReference(referenca);
-
-            KeyInfo ki = new KeyInfo();
-            ki.AddClause(new RSAKeyValue(objRsa));
-
-
-            objSignedXml.KeyInfo = ki;
-
-            objSignedXml.SigningKey = objRsa;
-
-            objSignedXml.ComputeSignature();
-
-            XmlElement signatureNode = objSignedXml.GetXml();
-            XmlElement rootNode = objXml.DocumentElement;
-
-            rootNode.AppendChild(signatureNode);
-
-            objXml.Save("fatura_e_nenshkruar.xml");
-
-           
         }
 
 

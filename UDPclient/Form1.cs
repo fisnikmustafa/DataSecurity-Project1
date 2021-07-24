@@ -21,25 +21,21 @@ namespace UDPclient
 {
     public partial class Form1 : Form
     {
-        Socket clientSocket;
+        private static X509Certificate2 cert = GetCertificateFromStore("E=support@uni-pr.edu, CN=www.uni-pr.edu, OU=FIEK, O=University of Prishtina, L=Washington, S=DC, C=US");
+
         RSACryptoServiceProvider objRsa = new RSACryptoServiceProvider();
         DESCryptoServiceProvider objDes = new DESCryptoServiceProvider();
-        X509Certificate2 certifikata = new X509Certificate2();
+      
         string key;
-        string IV;
-        XmlDocument objXml = new XmlDocument();
+        string IV;  
+        UdpClient klienti = new UdpClient();
 
-        Socket socket()
-        {
-            Socket newSocket = new Socket(AddressFamily.InterNetwork, SocketType.Dgram, ProtocolType.Udp);
-            return newSocket;
-        }
-
+    
 
         public Form1()
         {
             InitializeComponent();
-            clientSocket = socket();
+           
             connect();
 
         }
@@ -48,7 +44,7 @@ namespace UDPclient
 
         private void button2_Click(object sender, EventArgs e)
         {
-            Register rs = new Register(clientSocket, certifikata);
+            Register rs = new Register();
             rs.ShowDialog();
         }
 
@@ -62,16 +58,14 @@ namespace UDPclient
         private void connect()
         {
             string ip = "127.0.0.1";
-            int port = 3;
+            int port = 8500;
+            
 
             try
             {
-                clientSocket.Connect(new IPEndPoint(IPAddress.Parse(ip), port));
+                klienti.Connect(new IPEndPoint(IPAddress.Parse(ip), port));
 
-                new Thread(() =>
-                {
-                    read();
-                }).Start();
+                read();
             }
             catch
             {
@@ -87,37 +81,28 @@ namespace UDPclient
                 try
                 {
                     byte[] buffer = new byte[2048];
-                    int rec = clientSocket.Receive(buffer, 0, buffer.Length, 0);
-                    if (rec <= 0)
-                    {
-                        throw new SocketException();
-                    }
-                    Array.Resize(ref buffer, rec);
+                    IPEndPoint iep = new IPEndPoint(IPAddress.Parse("127.0.0.1"), 8500);
 
-                    Invoke((MethodInvoker)delegate
-                    {
-                        if (buffer.Length > 900)
-                        {
-                            certifikata.Import(buffer);
-                        }
-                        else
-                        {
+                    byte[] rec = klienti.Receive(ref iep);
+                    
+
+                   
+                        
                             string data = Encoding.Default.GetString(buffer);
                             //data = decrypt(data);
-                            if (data.Substring(0, 5) == "error")
+                            if (data.Substring(0, 5) == "ERROR")
                             {
                                 MessageBox.Show("Wrong Credentials");
                             }
                             else
                             {
-                                MessageBox.Show("Jeni kycur me sukses");
+                                MessageBox.Show("Login success!");
                                 Informatat informatat = new Informatat();
                                 informatat.Show();
                                 
                             }
-                        }
-                    });
                 }
+                                    
                 catch
                 {
                     MessageBox.Show("Disconnected");
@@ -128,15 +113,24 @@ namespace UDPclient
 
         private void send()
         {
+
+
             string username = txtUsername.Text;
             string password = txtPassword.Text;
             string login = "1";
 
+            Socket newSocket = new Socket(AddressFamily.InterNetwork, SocketType.Dgram, ProtocolType.Udp);
+            IPEndPoint iep = new IPEndPoint(IPAddress.Parse("127.0.0.1"), 8500);
+            EndPoint ep = (EndPoint)iep;
+            klienti.Connect(iep);
+
             string msg = username + "." + password + "." + login;
 
             msg = encrypt(msg);
+            
+
             byte[] data = Encoding.Default.GetBytes(msg);
-            clientSocket.Send(data, 0, data.Length, 0);
+            klienti.Send(data ,data.Length);
         }
 
         
@@ -150,7 +144,7 @@ namespace UDPclient
             key = Encoding.Default.GetString(objDes.Key);
             IV = Encoding.Default.GetString(objDes.IV);
 
-            objRsa = (RSACryptoServiceProvider)certifikata.PublicKey.Key;
+            objRsa = (RSACryptoServiceProvider)cert.PublicKey.Key;
             byte[] byteKey = objRsa.Encrypt(objDes.Key, true);
             string encryptedKey = Convert.ToBase64String(byteKey);
 
@@ -166,6 +160,27 @@ namespace UDPclient
             byte[] byteCiphertexti = ms.ToArray();
 
             return IV + "." + encryptedKey + "." + Convert.ToBase64String(byteCiphertexti);
+
+        }
+
+        private static X509Certificate2 GetCertificateFromStore(string certName)
+        {
+
+            X509Store store = new X509Store(StoreName.My, StoreLocation.CurrentUser);
+            try
+            {
+                store.Open(OpenFlags.ReadOnly);
+                X509Certificate2Collection certCollection = store.Certificates;
+                X509Certificate2Collection currentCerts = certCollection.Find(X509FindType.FindByTimeValid, DateTime.Now, false);
+                X509Certificate2Collection signingCert = currentCerts.Find(X509FindType.FindBySubjectDistinguishedName, certName, false);
+                if (signingCert.Count == 0)
+                    return null;
+                return signingCert[0];
+            }
+            finally
+            {
+                store.Close();
+            }
 
         }
 

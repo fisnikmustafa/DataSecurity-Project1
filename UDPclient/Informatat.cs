@@ -22,7 +22,7 @@ namespace UDPclient
 
         private void btnVerify_Click(object sender, EventArgs e)
         {
-            objXml.Load("fatura_e_nenshkruar.xml");
+            objXml.Load("signature.xml");
 
             SignedXml objSignedXml = new SignedXml(objXml);
 
